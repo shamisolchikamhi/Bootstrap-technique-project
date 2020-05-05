@@ -1,0 +1,363 @@
+---
+title: "STA3030F Project1"
+author: "Shamiso Chikamhi"
+date: "10/03/2020"
+output:
+  word_document: default
+  pdf_document: default
+---
+Question 1:
+
+```{r results='hide'}
+# Defining data
+mydata <- read.delim("F:/project 1/incexp.txt")
+index = 167
+age = mydata$AGE[index:(index+99)] 
+hhinc =mydata$HHINCOME[index:(index+29)]
+```
+
+Part A
+Exploratory data analysis.
+```{r results='hide'}
+# AGE variable
+
+boxplot(age,main = "The age of the head of the household", col = "gray" )
+cat("The summary statistics of the age variable are given as:")
+summary(age)
+hist(age, breaks = 15, main ="The age of the head of the household", col ="gray", border="blue" )
+
+# House hold income variable
+boxplot(hhinc, main = "total monthly income of the household", col = "gray" )
+cat("The summary statistics of the household income variable are given as:")
+summary(hhinc)
+hist(hhinc, main ="total monthly income of the household.", col ="gray", border="blue" )
+```
+
+Part B
+95% confidence interval for the population mean age.
+```{r results='hide'}
+sample_mean_age = mean(age)
+
+# Bootstrap procedure for the mean
+age_bts <- matrix(0,ncol=100,nrow=4000)
+for( i in 1:4000)
+{samp=sample(age,size=100,replace=TRUE)
+age_bts[i,]=samp}
+age_bts=apply(age_bts,1,mean)
+age_sort_bts=sort(age_bts)
+
+# Bootstrap confidence interval
+cat("The bootstrap 95% confidence interval is (",age_sort_bts[0.025*4000],",",age_sort_bts[0.975*4000],")")
+
+# Lower and upper bound error
+lb_error = age_sort_bts[0.025*4000] - sample_mean_age
+ub_error = age_sort_bts[0.975*4000] - sample_mean_age
+cat("The lower bound error is", lb_error, "and the upper bound error is",ub_error)
+
+#Confidence interval bounds
+bound1 = sample_mean_age - lb_error
+bound2 = sample_mean_age - ub_error
+
+#95% confidence interval
+if (bound1<bound2){
+  cat("The 95% confidence interval for the population mean age is (", bound1, ",", bound2, ")")
+}  else{   
+  cat("The 95% confidence interval for the population mean age is (", bound2, ",", bound1, ")")
+}
+
+```
+
+Part C 
+Hypothesis test that age is less than or equal to 43
+H0, H1
+```{r results='hide'}
+age_null_hyp = 43
+error = sample_mean_age - age_null_hyp
+cat("The sample mean is", sample_mean_age, "and the sampling error is", error)
+
+# vector of elements that are greater than smaple mean plus error
+pv_elements <- age_bts > (sample_mean_age+error)
+cat("The number bootstrap means greater than", sample_mean_age+error, "is:")
+sum(pv_elements)
+cat("Hence the p-value is:")
+p_value = (sum(pv_elements))/4000
+
+# P-value interpretation
+if (p_value < 0.05){
+  cat ("The p-value is", p_value, "which is significantly small hence we reject null hypothesis and conclude that the mean age is greater than 43.")
+} else {
+cat ("The p-value is", p_value, "which is significantly large hence we fail to reject null hypothesis and conclude that the mean age is less than 43.")
+}
+```
+
+Part D 
+histogram of the distribution of the sample mean age.
+```{r results='hide'}
+hist(age_bts, breaks = 20, main ="The bootstrap mean age of the head of the household", col ="gray", border="blue")
+```
+
+Part E
+90 % confidence interval of the median household income.
+```{r results='hide'}
+sample_median_hhinc = median(hhinc)
+cat("The sample median is", sample_median_hhinc)
+
+# Bootstrap procedeure fro the meadian of household income
+hhinc_bts <- matrix(0,ncol=30,nrow=4000)
+for( i in 1:4000)
+{samp1=sample(hhinc,size=30,replace=TRUE)
+hhinc_bts[i,]=samp1}
+hhinc_bts=apply(hhinc_bts,1,median)
+hhinc_sort_bts=sort(hhinc_bts)
+
+# Bootstrap confidence interval
+cat("Bootstrap 90% confidence interval is (",hhinc_sort_bts[0.05*4000],",",hhinc_sort_bts[0.95*4000],")")
+
+# Lower and upper bound error
+lb1_error = hhinc_sort_bts[0.025*4000] - sample_median_hhinc
+ub1_error = hhinc_sort_bts[0.975*4000] - sample_median_hhinc
+cat("The lower bound error is", lb1_error, "and the upper bound error is", ub1_error)
+
+# Confidence Interval bounds 
+bound3 = sample_median_hhinc - lb1_error
+bound4 = sample_median_hhinc - ub1_error
+# 90% confidence interval
+if (bound1<bound2){
+  cat("The 90% confidence interval for the house hould income median is (", bound3, ",", bound4, ")")
+}  else{   
+  cat("The 90% confidence interval for the house hould income median is  (", bound3, ",", bound4, ")")
+}
+
+```
+
+Question 2
+```{r results='hide'}
+# Defining data
+data2 <-  read.delim("F:/project 1/E1.txt")
+fertA = data2$Fert_A
+fertB = data2$Fert_B
+
+# Data summary
+cat("The data summary of yield from fertiliser A is:")
+summary(fertA)
+cat("The data summary of yield from fertiliser B is:")
+summary(fertB)
+
+```
+
+Part A
+Test whether there are significant differences in means between the two groups.
+H0 and H1
+```{r results='hide'}
+# Original sample mean differences
+samp_meanA = mean(fertA)
+samp_meanB = mean(fertB)
+samp_meanDiff = samp_meanB - samp_meanA
+cat("The original sample mean difference", samp_meanDiff)
+
+# Bootstrap for the mean differences between the 2 groups
+all_A_B =c(fertA,fertB)
+bstA=bstB=matrix(0,ncol=20,nrow=5000)
+for(j in 1:5000)
+{samp2=sample(all_A_B,size=40,replace=TRUE)
+bstA[j,] =samp2[1:20]
+bstB[j,]=samp2[21:40]
+}
+
+bstA_mean=apply(bstA,1,mean)
+bstB_mean=apply(bstB,1,mean)
+bst_mean_diff=bstB_mean-bstA_mean
+
+# Vector of elements that are greater than smaple mean plus error
+pv_diff <- (bst_mean_diff > samp_meanDiff)|(bst_mean_diff < -samp_meanDiff)
+cat("The number of bootstrap differences execeding or are less than the sample mean difference:")
+sum(pv_diff)
+p_value1 = sum(pv_diff)/5000 
+cat("The p-value is", p_value1)
+
+
+# Interpretaion of the p-value
+if (p_value1 < 0.05){
+  cat ("The p-value is", p_value1, "which is significantly small hence we reject null hypothesis and conclude that the mean crop yields from the two fertilisers are not equal.")
+} else {
+  cat ("The p-value is", p_value1, "which is significantly large hence we fail to reject null hypothesis and conclude that the mean crop yields from the two fertilisers are equal.")
+}
+
+```
+
+Part B
+95% confidence interval for the difference in means
+```{r results='hide'}
+# Bootstrap confidence interval
+sort_bst_mean_diff = sort(bst_mean_diff)
+cat("The bootstrap difference 95% confidence interval is (", sort_bst_mean_diff[0.025*5000],",",sort_bst_mean_diff[0.975*5000],")")
+
+#Lower and upper bound error
+lb2_error = sort_bst_mean_diff[0.025*4000] - samp_meanDiff
+ub2_error = sort_bst_mean_diff[0.975*4000] - samp_meanDiff
+cat("The lower bound error is", lb2_error, "and the upper bound error is", ub2_error)
+
+# Confidence interval bounds 
+bound5 = samp_meanDiff - lb2_error
+bound6 = samp_meanDiff - ub2_error
+# Confidence interval
+if (bound5<bound6){
+  cat("The 95% confidence interval for the mean yield difference is (", bound5, ",", bound6, ")")
+}  else{   
+  cat("The 95% confidence interval for the mean yield difference is (", bound6, ",", bound5, ")")
+}
+```
+
+Part C
+Test for the variances for equality.
+```{r results='hide'}
+# Original sample F-ratio
+varA = var(fertA)
+varB = var(fertB)
+samp_F = varA/varB
+cat("The variance of yield from fetilier A is", varA,"while that of fertiliser B is", varB,". The original sample F-ratio is ", samp_F)
+
+# Bootstrap F-ratio
+bstA_var =apply(bstA,1,var)
+bstB_var =apply(bstB,1,var)
+bst_F = bstA_var/bstB_var
+
+# Vector of elements that are greater than the sample F ratio
+pv_F <- (bst_F > samp_F)
+cat("The number of bootstrap F-ratio greater than the original F-ratio:")
+sum(pv_F)
+p_value2 = sum(pv_F)/5000
+cat("The p-value is", p_value2)
+
+
+# Interpretaion of the p-value
+if (p_value1 < 0.05){
+  cat ("The p-value is", p_value2, "which is significantly small hence we reject null hypothesis and conclude that the variance of the crop yields from the two fertilisers are different.")
+} else {
+  cat ("The p-value is", p_value2, "which is significantly large hence we fail to reject null hypothesis and conclude that the variane of the crop yields from the two fertilisers are equal.")
+}
+
+```
+
+Part D
+Comparison of  the results from bootstrapping and normal theory
+```{r results='hide'}
+# Calculating the p-value
+df1 = length(fertA)-1
+df2 = length(fertB)-1
+p_value3 = pf(samp_F, df1,df2)
+cat("An F-test with", df1,",",df2, "Degrees of freedom is conducted and the p-value is", p_value3)
+
+# Interpreting the p-value
+if (p_value1 < 0.05){
+  cat ("The p-value is", p_value3, "which is significantly small hence we reject null hypothesis and conclude that the variance of the crop yields from the two fertilisers are different.")
+} else {
+  cat ("The p-value is", p_value3, "which is significantly large hence we fail to reject null hypothesis and conclude that the variane of the crop yields from the two fertilisers are equal.")
+}
+
+
+```
+
+Question 3
+```{r results='hide'}
+# Defining data
+data3 <- read.delim("F:/project 1/aov1.txt")
+data3 <- na.omit(data3) 
+p1= data3$Price_9
+p2 = data3$Price_10
+p3 = data3$Price_11
+
+price = list("numeric",length=3)
+price[[1]]=c(p1)
+price[[2]]=c(p2)
+price[[3]]=c(p3)
+
+n=c(length(price[[1]]),length(price[[2]]),length(price[[3]]))
+N=sum(n)
+k=length(price)
+
+```
+
+Part A 
+test whether there are significant differences in means between the groups
+H0 H1
+```{r results='hide'}
+#ANOVA WITH ORIGINAL DATA
+RATIOS = Yi.=vector("numeric")
+Y.. = mean(unlist(price))
+cat("The grand mean is", Y..)
+SSE = SST = 0
+
+
+for(j in 1:k)
+{Yi.[j] = mean(price[[j]])
+SSE = SSE+sum((price[[j]]-Yi.[j])^2)
+SST = SST+n[j]*(Yi.[j]-Y..)^2
+}
+
+cat("The mean for price1 is",Yi.[1],"for price 2 is", Yi.[2], "and for price 3 it is", Yi.[3],"The SSE is",SSE, "and the SST is",SST)
+F_sample = (SST/(k-1))/(SSE/(N-k))
+cat("The original F-ratio is", F_sample)
+
+# ANOVA with bootstrap samples
+B3 = 5000
+ALLprice = unlist(price)
+
+bst1=bst2=bst3 = matrix(0, nrow = 5000, ncol = 20 )
+for(h in 1:B3)
+{SSE = SST = 0 
+Yi.=vector("numeric")
+price = list("numeric",length=3)
+bst_anova = sample(ALLprice, size=60, replace=TRUE)
+bst1[h,] = bst_anova[1:20]
+bst2[h,] = bst_anova[21:40]
+bst3[h,] = bst_anova[41:60]
+
+price[[1]]=bst_anova[1:20]
+price[[2]]=bst_anova[21:40]
+price[[3]]=bst_anova[41:60]
+
+for(j in 1:k)
+{Yi.[j] = mean(price[[j]])
+SSE = SSE+sum((price[[j]]-Yi.[j])^2)
+SST = SST+n[j]*(Yi.[j]-Y..)^2
+}
+RATIOS[h]=(SST/(k-1))/(SSE/(N-k))
+}
+```
+ 
+Part B
+print-out of the first 3 bootstrap samples generated
+```{r results='hide'}
+# First 3 bootstrap samples
+cat("Samples for price 1:")
+bst1[1:3,]
+cat("Samples for price 2:")
+bst2[1:3,]
+cat("Samples for price 3:")
+bst3[1:3,]
+
+
+```
+
+Part C
+p-value and conclusion based on the bootstrap results.
+```{r results='hide'}
+p_value4 = length(RATIOS[RATIOS>F_sample])/B3
+
+theory_pvalue = pf(F_sample, k-1, N-k, lower.tail = FALSE)
+cat("The bootstrap pvalue is", p_value4)
+cat("The theoretical pvalue is", theory_pvalue)
+
+
+# Interpretation of the p-value
+if (p_value1 < 0.05){
+  cat ("The p-value is", p_value4, "which is significantly small hence we reject null hypothesis and conclude that there are significant differences in means between the groups.")
+} else {
+  cat ("The p-value is", p_value4, "which is significantly large hence we fail to reject null hypothesis and conclude that there are no significant differences in means between the groups.")
+}
+
+```
+
+Part D
+Interpretation of the results.
